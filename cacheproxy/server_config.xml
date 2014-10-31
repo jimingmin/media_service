@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<server>
+	<self listen_port="9001" server_type="8" server_id="1"/>
+	<cache server_address="10.0.102.30" server_port="11211"/>
+</server>

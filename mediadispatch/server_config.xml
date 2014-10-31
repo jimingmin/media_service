@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<server>
+	<self listen_port="1394" server_type="7" server_id="1"/>
+	<peers>
+		<node peer_address="10.0.102.30" peer_port="9001" peer_type="8" peer_id="1"/>
+	</peers>
+	<groups>
+	    <group id="1" server_list="42.62.31.11-42.62.31.12-42.62.31.15"/>
+	    <group id="2" server_list="58.240.173.107-58.240.199.41-180.97.80.107-180.97.82.237"/>
+	</groups>
+</server>
