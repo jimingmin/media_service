@@ -1,4 +1,4 @@
-BASE_DIR= ${HOME}
+BASE_DIR= ${HOME}/develop/server
 
 DEBUG_LIB_DIR = $(BASE_DIR)/lib/Debug
 RELEASE_LIB_DIR = $(BASE_DIR)/lib/Release
@@ -7,14 +7,14 @@ ifeq ($(mode),d)
 	BIN_SUFFIX = _dbg
 	LIB_DIR = $(DEBUG_LIB_DIR)
 	BIN_DIR = $(BASE_DIR)/bin/Debug
-	CPPFLAGS= -g -fPIC -Wall -DDEBUG $(INC) -Wno-invalid-offsetof
+	CPPFLAGS= -g -fPIC -Wall -DDEBUG $(INC) -Wno-invalid-offsetof -std=c++0x
 	LDFLAGS = -g -fPIC -L$(LIB_DIR) -lpthread -lnetevent -llogger -lcommon -lframe -ltinyxml -lmemcached
 	DEBUG_TARGET = $(BIN_DIR)/cacheproxy$(BIN_SUFFIX)
 	TARGET	= $(DEBUG_TARGET)
 else
 	LIB_DIR = $(RELEASE_LIB_DIR)
 	BIN_DIR = $(BASE_DIR)/bin/Release
-	CPPFLAGS= -g -fPIC -Wall  $(INC) -Wno-invalid-offsetof
+	CPPFLAGS= -g -fPIC -Wall  $(INC) -Wno-invalid-offsetof -std=c++0x
 	LDFLAGS = -g -fPIC -L$(LIB_DIR) -lpthread -lnetevent -llogger -lcommon -lframe -ltinyxml -lmemcached
 	RELEASE_TARGET = $(BIN_DIR)/cacheproxy$(BIN_SUFFIX)
 	TARGET	= $(RELEASE_TARGET)

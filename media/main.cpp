@@ -27,6 +27,10 @@
 #include "timer_handler.h"
 #include "datacenter.h"
 
+#ifdef unix
+#include <sys/file.h>
+#endif
+
 using namespace LOGGER;
 using namespace NETEVENT;
 using namespace FRAME;
@@ -99,7 +103,6 @@ int32_t main(int argc, char** argv)
 		printf("%s was launched!\n", SERVER_NAME);
 		exit(1);
 	}
-
 #endif
 
 	//启动日志线程
