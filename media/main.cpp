@@ -7,6 +7,7 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <string.h>
 #include "../netevent/net_namespace.h"
 #include "../netevent/net_impl.h"
 #include "../netevent/net_typedef.h"
@@ -74,8 +75,33 @@ int32_t InitTimer()
 	return 0;
 }
 
-int32_t main()
+int32_t main(int argc, char** argv)
 {
+	bool bDaemon = false;
+
+	//读取命令行参数
+	if (argc > 1)
+	{
+		if (0 == strcmp(argv[1], "-d"))
+		{
+			bDaemon = true;
+		}
+	}
+#ifndef WIN32
+	int lock_fd = open((const char *)argv[0], O_RDONLY);
+	if (lock_fd < 0)
+	{
+		exit(1);
+	}
+
+	if (flock(lock_fd, LOCK_EX | LOCK_NB) < 0)
+	{
+		printf("%s was launched!\n", SERVER_NAME);
+		exit(1);
+	}
+
+#endif
+
 	//启动日志线程
 	CLogger::Start();
 
@@ -85,7 +111,7 @@ int32_t main()
 
 	g_Frame.AddRunner(pNetHandler);
 
-	if(g_Frame.Init(SERVER_NAME) != 0)
+	if(g_Frame.Init(SERVER_NAME, bDaemon) != 0)
 	{
 		return 0;
 	}
