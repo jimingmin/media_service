@@ -170,33 +170,33 @@ int32_t CMediaChannel::StartShow()
 	{
 		CTimerHandler *pTimerHandler = g_DataCenter.GetTimerHandler();
 		pTimerHandler->RecordShowerHB(this);
+
+		//加入所有本组内其它media
+		IIOSession *arrIoSession[enmMaxNetNodeCount];
+		int32_t nCount = CServerHelper::GetAllIoSession(enmEntityType_Media, arrIoSession, enmMaxNetNodeCount);
+		for(int32_t i = 0; i < nCount; ++i)
+		{
+			CSessionParam *pSessionParam = (CSessionParam *)arrIoSession[i]->GetParamPtr();
+			if(pSessionParam == NULL)
+			{
+				continue;
+			}
+
+			EntityType nEntityType = enmEntityType_None;
+			ServerID nServerID = enmInvalidServerID;
+			pSessionParam->GetServerInfo(nEntityType, nServerID);
+
+			CMediaChannel *pSubscriber = NEW(CMediaChannel);
+			pSubscriber->SetServerID(nServerID);
+			pSubscriber->SetIoSession(arrIoSession[i]);
+			pSubscriber->SetChannelKey(m_nRoomID, m_nShowerID, nServerID);
+			pSubscriber->SetChannelType(enmChannelType_Server);
+
+			Join(pSubscriber);
+		}
 	}
 
 	g_DataCenter.AddChannel(this);
-
-	//加入所有本组内其它media
-	IIOSession *arrIoSession[enmMaxNetNodeCount];
-	int32_t nCount = CServerHelper::GetAllIoSession(enmEntityType_Media, arrIoSession, enmMaxNetNodeCount);
-	for(int32_t i = 0; i < nCount; ++i)
-	{
-		CSessionParam *pSessionParam = (CSessionParam *)arrIoSession[i]->GetParamPtr();
-		if(pSessionParam == NULL)
-		{
-			continue;
-		}
-
-		EntityType nEntityType = enmEntityType_None;
-		ServerID nServerID = enmInvalidServerID;
-		pSessionParam->GetServerInfo(nEntityType, nServerID);
-
-		CMediaChannel *pSubscriber = NEW(CMediaChannel);
-		pSubscriber->SetServerID(nServerID);
-		pSubscriber->SetIoSession(arrIoSession[i]);
-		pSubscriber->SetChannelKey(m_nRoomID, m_nShowerID, nServerID);
-		pSubscriber->SetChannelType(enmChannelType_Server);
-
-		Join(pSubscriber);
-	}
 
 	return 0;
 }

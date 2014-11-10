@@ -76,6 +76,10 @@ int32_t CCommandHandler::ServerRegistEvent(CBaseObject *pObject, IMsgHead *pMsgH
 			continue;
 		}
 
+		CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
+		RoomParam stRoomParam(nRoomID, nShowerID, pMsgHeadSS->m_nSrcID);
+		pSessionParam->AddRoomParam(stRoomParam);
+
 		pShower->Join(pSubscriber);
 	}
 
@@ -746,6 +750,10 @@ int32_t CCommandHandler::ShowerListEvent(CBaseObject *pObject, IMsgHead *pMsgHea
 		pShower->SetChannelKey(pShowerListNoti->m_arrRoomID[i], pShowerListNoti->m_arrShowerID[i], pShowerListNoti->m_arrShowerID[i]);
 		pShower->SetChannelType(enmChannelType_Server);
 		pShower->StartShow();
+
+		CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
+		RoomParam stRoomParam(pShowerListNoti->m_arrRoomID[i], pShowerListNoti->m_arrShowerID[i], pShowerListNoti->m_arrShowerID[i]);
+		pSessionParam->AddRoomParam(stRoomParam);
 	}
 
 	return 0;
