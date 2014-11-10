@@ -58,6 +58,27 @@ int32_t CCommandHandler::ServerRegistEvent(CBaseObject *pObject, IMsgHead *pMsgH
 	SendSSNoti(MSGID_SHOWERLIST_NOTI, &stShowerListInfo, enmInvalidRoomID, enmInvalidUserID,
 			enmTransType_P2P, pMsgHeadSS->m_nSrcType, pMsgHeadSS->m_nSrcID);
 
+	for(int32_t i = 0; i < stShowerListInfo.m_nShowerCount; ++i)
+	{
+		RoomID nRoomID = stShowerListInfo.m_arrRoomID[i];
+		UserID nShowerID = stShowerListInfo.m_arrShowerID[i];
+
+		CMediaChannel *pSubscriber = NEW(CMediaChannel);
+		pSubscriber->SetServerID(pMsgHeadSS->m_nSrcID);
+		pSubscriber->SetIoSession(pIoSession);
+		pSubscriber->SetChannelKey(nRoomID, nShowerID, pMsgHeadSS->m_nSrcID);
+		pSubscriber->SetChannelType(enmChannelType_Server);
+		CMediaChannel *pShower = g_DataCenter.FindChannel(nRoomID, nShowerID, pMsgHeadSS->m_nSrcID);
+		if(pShower == NULL)
+		{
+			WRITE_WARN_LOG(SERVER_NAME, "it's not found shower when server regist!{RoomID=%d, ShowerID=%d}\n",
+				nRoomID, nShowerID);
+			continue;
+		}
+
+		pShower->Join(pSubscriber);
+	}
+
 	return 0;
 }
 
@@ -470,13 +491,13 @@ int32_t CCommandHandler::UserSubscribeEvent(CBaseObject *pObject, IMsgHead *pMsg
 	}
 
 	CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
-	if((!pShower->IsLocalServer()) && (pShower->GetReciverCount() <= 0))
-	{
-		ServerSubscribeReq stReq;
-		stReq.m_nShowerID = pSubscribeReq->m_nUserID;
-		SendSSReq(MSGID_SERVERSUBSCRIBE_REQ, pMsgHeadCS->m_nRoomID, pServerConfig->GetServerID(), &stReq,
-				enmEntityType_Media, pShower->GetServerID());
-	}
+	//if((!pShower->IsLocalServer()) && (pShower->GetReciverCount() <= 0))
+	//{
+	//	ServerSubscribeReq stReq;
+	//	stReq.m_nShowerID = pSubscribeReq->m_nUserID;
+	//	SendSSReq(MSGID_SERVERSUBSCRIBE_REQ, pMsgHeadCS->m_nRoomID, pServerConfig->GetServerID(), &stReq,
+	//			enmEntityType_Media, pShower->GetServerID());
+	//}
 
 	//查找订阅者
 	CMediaChannel *pSubscriber = g_DataCenter.FindChannel(pMsgHeadCS->m_nRoomID, pSubscribeReq->m_nUserID, pMsgHeadCS->m_nUserID);
@@ -561,129 +582,129 @@ int32_t CCommandHandler::UserUnsubscribeEvent(CBaseObject *pObject, IMsgHead *pM
 	return 0;
 }
 
-//其它服务器订阅
-int32_t CCommandHandler::ServerSubscribeEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody)
-{
-//	WRITE_DEBUG_LOG(SERVER_NAME, "recv server subscribe event!\n");
-
-	ServerSubscribeResp stResp;
-	stResp.m_nResult = 1;
-
-	IIOSession *pIoSession = dynamic_cast<IIOSession *>(pObject);
-	if(pIoSession == NULL)
-	{
-		WRITE_WARN_LOG(SERVER_NAME, "translate object to iosession error!\n");
-		return 0;
-	}
-
-	MsgHeadSS *pMsgHeadSS = dynamic_cast<MsgHeadSS *>(pMsgHead);
-	if(pMsgHeadSS == NULL)
-	{
-		WRITE_WARN_LOG(SERVER_NAME, "translate msghead to msgheadss error!\n");
-		return 0;
-	}
-
-	ServerSubscribeReq *pServerSubscribeReq = dynamic_cast<ServerSubscribeReq *>(pMsgBody);
-	if(pServerSubscribeReq == NULL)
-	{
-		WRITE_WARN_LOG(SERVER_NAME, "translate msgbody to server subscribe req error!\n");
-		return 0;
-	}
-
-	//查找表演者
-	CMediaChannel *pShower = g_DataCenter.FindChannel(pMsgHeadSS->m_nRoomID, pServerSubscribeReq->m_nShowerID, pServerSubscribeReq->m_nShowerID);
-	if(pShower == NULL)
-	{
-		WRITE_ERROR_LOG(SERVER_NAME, "she's not a shower!{SubscriberID=%d, ShowerID=%d}\n", pMsgHeadSS->m_nUserID, pServerSubscribeReq->m_nShowerID);
-		return 0;
-	}
-
-	CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
-	if(pShower->GetServerID() != pServerConfig->GetServerID())
-	{
-		WRITE_ERROR_LOG(SERVER_NAME, "shower is not in local server!{BelongServerID=%d, LocalServerID=%d, ShowerID=%d}\n",
-				pShower->GetServerID(), pServerConfig->GetServerID(), pServerSubscribeReq->m_nShowerID);
-		return 0;
-	}
-
-	//查找订阅者
-	CMediaChannel *pSubscriber = g_DataCenter.FindChannel(pMsgHeadSS->m_nRoomID, pServerSubscribeReq->m_nShowerID, pMsgHeadSS->m_nSrcID);
-	if(pSubscriber == NULL)
-	{
-		pSubscriber = NEW(CMediaChannel);
-		if(pSubscriber == NULL)
-		{
-			WRITE_WARN_LOG(SERVER_NAME, "we cann't alloc memory to shower!{SubscriberID=%d, ShowerID=%d}\n", pMsgHeadSS->m_nUserID, pServerSubscribeReq->m_nShowerID);
-			return 0;
-		}
-
-		pSubscriber->SetServerID(pMsgHeadSS->m_nSrcID);
-		pSubscriber->SetIoSession(pIoSession);
-		pSubscriber->SetChannelKey(pMsgHeadSS->m_nRoomID, pServerSubscribeReq->m_nShowerID, pMsgHeadSS->m_nSrcID);
-		pSubscriber->SetChannelType(enmChannelType_Server);
-	}
-	else
-	{
-		WRITE_ERROR_LOG(SERVER_NAME, "subscriber is exist!{RoomID=%d, ShowerID=%d, SubscriberID=%d}\n", pMsgHeadSS->m_nRoomID, pServerSubscribeReq->m_nShowerID, pMsgHeadSS->m_nSrcID);
-		return 0;
-	}
-
-	CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
-	RoomParam stRoomParam(pMsgHeadSS->m_nRoomID, pServerSubscribeReq->m_nShowerID, pMsgHeadSS->m_nSrcID);
-	pSessionParam->AddRoomParam(stRoomParam);
-
-	pShower->Join(pSubscriber);
-	return 0;
-}
-
-//其它服务器取消订阅
-int32_t CCommandHandler::ServerUnsubscribeEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody)
-{
-//	WRITE_DEBUG_LOG(SERVER_NAME, "recv server unsubscribe event!\n");
-
-	IIOSession *pIoSession = dynamic_cast<IIOSession *>(pObject);
-	if(pIoSession == NULL)
-	{
-		WRITE_WARN_LOG(SERVER_NAME, "translate object to iosession error!\n");
-		return 0;
-	}
-
-	MsgHeadSS *pMsgHeadSS = dynamic_cast<MsgHeadSS *>(pMsgHead);
-	if(pMsgHeadSS == NULL)
-	{
-		WRITE_WARN_LOG(SERVER_NAME, "translate msghead to msgheadss error!\n");
-		return 0;
-	}
-
-	ServerUnsubscribeReq *pServerUnsubscribeReq = dynamic_cast<ServerUnsubscribeReq *>(pMsgBody);
-	if(pServerUnsubscribeReq == NULL)
-	{
-		WRITE_WARN_LOG(SERVER_NAME, "translate msgbody to server unsubscribe req error!\n");
-		return 0;
-	}
-
-	CMediaChannel *pShower = g_DataCenter.FindChannel(pMsgHeadSS->m_nRoomID, pServerUnsubscribeReq->m_nShowerID, pServerUnsubscribeReq->m_nShowerID);
-	if(pShower == NULL)
-	{
-		WRITE_WARN_LOG(SERVER_NAME, "it's not found shower channel!{UserID=%d}\n", pServerUnsubscribeReq->m_nShowerID);
-		return 0;
-	}
-
-	CMediaChannel *pSubscriber = g_DataCenter.FindChannel(pMsgHeadSS->m_nRoomID, pServerUnsubscribeReq->m_nShowerID, pMsgHeadSS->m_nSrcID);
-	if(pSubscriber == NULL)
-	{
-		WRITE_WARN_LOG(SERVER_NAME, "it's not found subscriber channel!{UserID=%d}\n", pMsgHeadSS->m_nSrcID);
-		return 0;
-	}
-
-	CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
-	pSessionParam->FirstRoomParam();
-
-	pShower->Leave(pSubscriber);
-	DELETE(pSubscriber);
-
-	return 0;
-}
+////其它服务器订阅
+//int32_t CCommandHandler::ServerSubscribeEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody)
+//{
+////	WRITE_DEBUG_LOG(SERVER_NAME, "recv server subscribe event!\n");
+//
+//	ServerSubscribeResp stResp;
+//	stResp.m_nResult = 1;
+//
+//	IIOSession *pIoSession = dynamic_cast<IIOSession *>(pObject);
+//	if(pIoSession == NULL)
+//	{
+//		WRITE_WARN_LOG(SERVER_NAME, "translate object to iosession error!\n");
+//		return 0;
+//	}
+//
+//	MsgHeadSS *pMsgHeadSS = dynamic_cast<MsgHeadSS *>(pMsgHead);
+//	if(pMsgHeadSS == NULL)
+//	{
+//		WRITE_WARN_LOG(SERVER_NAME, "translate msghead to msgheadss error!\n");
+//		return 0;
+//	}
+//
+//	ServerSubscribeReq *pServerSubscribeReq = dynamic_cast<ServerSubscribeReq *>(pMsgBody);
+//	if(pServerSubscribeReq == NULL)
+//	{
+//		WRITE_WARN_LOG(SERVER_NAME, "translate msgbody to server subscribe req error!\n");
+//		return 0;
+//	}
+//
+//	//查找表演者
+//	CMediaChannel *pShower = g_DataCenter.FindChannel(pMsgHeadSS->m_nRoomID, pServerSubscribeReq->m_nShowerID, pServerSubscribeReq->m_nShowerID);
+//	if(pShower == NULL)
+//	{
+//		WRITE_ERROR_LOG(SERVER_NAME, "she's not a shower!{SubscriberID=%d, ShowerID=%d}\n", pMsgHeadSS->m_nUserID, pServerSubscribeReq->m_nShowerID);
+//		return 0;
+//	}
+//
+//	CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
+//	if(pShower->GetServerID() != pServerConfig->GetServerID())
+//	{
+//		WRITE_ERROR_LOG(SERVER_NAME, "shower is not in local server!{BelongServerID=%d, LocalServerID=%d, ShowerID=%d}\n",
+//				pShower->GetServerID(), pServerConfig->GetServerID(), pServerSubscribeReq->m_nShowerID);
+//		return 0;
+//	}
+//
+//	//查找订阅者
+//	CMediaChannel *pSubscriber = g_DataCenter.FindChannel(pMsgHeadSS->m_nRoomID, pServerSubscribeReq->m_nShowerID, pMsgHeadSS->m_nSrcID);
+//	if(pSubscriber == NULL)
+//	{
+//		pSubscriber = NEW(CMediaChannel);
+//		if(pSubscriber == NULL)
+//		{
+//			WRITE_WARN_LOG(SERVER_NAME, "we cann't alloc memory to shower!{SubscriberID=%d, ShowerID=%d}\n", pMsgHeadSS->m_nUserID, pServerSubscribeReq->m_nShowerID);
+//			return 0;
+//		}
+//
+//		pSubscriber->SetServerID(pMsgHeadSS->m_nSrcID);
+//		pSubscriber->SetIoSession(pIoSession);
+//		pSubscriber->SetChannelKey(pMsgHeadSS->m_nRoomID, pServerSubscribeReq->m_nShowerID, pMsgHeadSS->m_nSrcID);
+//		pSubscriber->SetChannelType(enmChannelType_Server);
+//	}
+//	else
+//	{
+//		WRITE_ERROR_LOG(SERVER_NAME, "subscriber is exist!{RoomID=%d, ShowerID=%d, SubscriberID=%d}\n", pMsgHeadSS->m_nRoomID, pServerSubscribeReq->m_nShowerID, pMsgHeadSS->m_nSrcID);
+//		return 0;
+//	}
+//
+//	CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
+//	RoomParam stRoomParam(pMsgHeadSS->m_nRoomID, pServerSubscribeReq->m_nShowerID, pMsgHeadSS->m_nSrcID);
+//	pSessionParam->AddRoomParam(stRoomParam);
+//
+//	pShower->Join(pSubscriber);
+//	return 0;
+//}
+//
+////其它服务器取消订阅
+//int32_t CCommandHandler::ServerUnsubscribeEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody)
+//{
+////	WRITE_DEBUG_LOG(SERVER_NAME, "recv server unsubscribe event!\n");
+//
+//	IIOSession *pIoSession = dynamic_cast<IIOSession *>(pObject);
+//	if(pIoSession == NULL)
+//	{
+//		WRITE_WARN_LOG(SERVER_NAME, "translate object to iosession error!\n");
+//		return 0;
+//	}
+//
+//	MsgHeadSS *pMsgHeadSS = dynamic_cast<MsgHeadSS *>(pMsgHead);
+//	if(pMsgHeadSS == NULL)
+//	{
+//		WRITE_WARN_LOG(SERVER_NAME, "translate msghead to msgheadss error!\n");
+//		return 0;
+//	}
+//
+//	ServerUnsubscribeReq *pServerUnsubscribeReq = dynamic_cast<ServerUnsubscribeReq *>(pMsgBody);
+//	if(pServerUnsubscribeReq == NULL)
+//	{
+//		WRITE_WARN_LOG(SERVER_NAME, "translate msgbody to server unsubscribe req error!\n");
+//		return 0;
+//	}
+//
+//	CMediaChannel *pShower = g_DataCenter.FindChannel(pMsgHeadSS->m_nRoomID, pServerUnsubscribeReq->m_nShowerID, pServerUnsubscribeReq->m_nShowerID);
+//	if(pShower == NULL)
+//	{
+//		WRITE_WARN_LOG(SERVER_NAME, "it's not found shower channel!{UserID=%d}\n", pServerUnsubscribeReq->m_nShowerID);
+//		return 0;
+//	}
+//
+//	CMediaChannel *pSubscriber = g_DataCenter.FindChannel(pMsgHeadSS->m_nRoomID, pServerUnsubscribeReq->m_nShowerID, pMsgHeadSS->m_nSrcID);
+//	if(pSubscriber == NULL)
+//	{
+//		WRITE_WARN_LOG(SERVER_NAME, "it's not found subscriber channel!{UserID=%d}\n", pMsgHeadSS->m_nSrcID);
+//		return 0;
+//	}
+//
+//	CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
+//	pSessionParam->FirstRoomParam();
+//
+//	pShower->Leave(pSubscriber);
+//	DELETE(pSubscriber);
+//
+//	return 0;
+//}
 
 //通知方告知自己所拥有的发布者
 int32_t CCommandHandler::ShowerListEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody)

@@ -307,6 +307,26 @@ IIOSession *CServerHelper::GetIoSession(EntityType nEntityType, int32_t nID)
 	return pIoSession;
 }
 
+int32_t CServerHelper::GetAllIoSession(EntityType nEntityType, IIOSession *arrIoSession[], int32_t nSize)
+{
+	int32_t nCount = 0;
+	EntityMap::iterator it = m_stEntityMap.find(nEntityType);
+	if(it != m_stEntityMap.end())
+	{
+		IDMap::iterator et = it->second.begin();
+		for(; et != it->second.end(); ++et)
+		{
+			arrIoSession[nCount++] = et->second;
+			if(nCount >= nSize)
+			{
+				break;
+			}
+		}
+	}
+
+	return nCount;
+}
+
 int32_t CServerHelper::MakeTransMediaHeadBuf(RoomID nRoomID, UserID nUserID, uint8_t *pHeadBuf, int32_t nBodySize)
 {
 	uint32_t nOffset = 0;

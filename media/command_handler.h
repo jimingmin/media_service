@@ -35,10 +35,10 @@ public:
 	int32_t UserSubscribeEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody);
 	//用户取消订阅
 	int32_t UserUnsubscribeEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody);
-	//其它服务器订阅
-	int32_t ServerSubscribeEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody);
-	//其它服务器取消订阅
-	int32_t ServerUnsubscribeEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody);
+	////其它服务器订阅
+	//int32_t ServerSubscribeEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody);
+	////其它服务器取消订阅
+	//int32_t ServerUnsubscribeEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody);
 	//通知方告知自己所拥有的发布者
 	int32_t ShowerListEvent(CBaseObject *pObject, IMsgHead *pMsgHead, IMsgBody *pMsgBody);
 	//心跳

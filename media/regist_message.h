@@ -29,8 +29,8 @@ ON_PROC_PMH_PMB(MSGID_SERVERREGIST_REQ, MsgHeadSS, ServerRegistReq, CCommandHand
 ON_PROC_PMH_PMB(MSGID_SERVERUNREGIST_REQ, MsgHeadSS, ServerUnregistReq, CCommandHandler, CCommandHandler::ServerUnregistEvent);
 ON_PROC_PMH_PMB(MSGID_SHOWERLOGIN_NOTI, MsgHeadSS, ShowerLoginNoti, CCommandHandler, CCommandHandler::ShowerLoginEvent);
 ON_PROC_PMH_PMB(MSGID_SHOWERLOGOUT_NOTI, MsgHeadSS, ShowerLogoutNoti, CCommandHandler, CCommandHandler::ShowerLogoutEvent);
-ON_PROC_PMH_PMB(MSGID_SERVERSUBSCRIBE_REQ, MsgHeadSS, ServerSubscribeReq, CCommandHandler, CCommandHandler::ServerSubscribeEvent);
-ON_PROC_PMH_PMB(MSGID_SERVERUNSUBSCRIBE_REQ, MsgHeadSS, ServerUnsubscribeReq, CCommandHandler, CCommandHandler::ServerUnsubscribeEvent);
+//ON_PROC_PMH_PMB(MSGID_SERVERSUBSCRIBE_REQ, MsgHeadSS, ServerSubscribeReq, CCommandHandler, CCommandHandler::ServerSubscribeEvent);
+//ON_PROC_PMH_PMB(MSGID_SERVERUNSUBSCRIBE_REQ, MsgHeadSS, ServerUnsubscribeReq, CCommandHandler, CCommandHandler::ServerUnsubscribeEvent);
 ON_PROC_PMH_PMB(MSGID_SHOWERLIST_NOTI, MsgHeadSS, ShowerListNoti, CCommandHandler, CCommandHandler::ShowerListEvent);
 ON_PROC_PMH_PMB(MSGID_HEARTBEAT_REQ, MsgHeadCS, HeartBeatReq, CCommandHandler, CCommandHandler::HeartBeatEvent);
 MSGMAP_END(msgmap)

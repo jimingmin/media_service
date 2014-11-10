@@ -165,10 +165,15 @@ int32_t CMessageHandler::OnClosed(IIOSession *pIoSession)
 	WRITE_DEBUG_LOG(SERVER_NAME, "session closed!{peeraddress=%s, peerport=%d, socketfd=%d}\n",
 			pIoSession->GetPeerAddressStr(), pIoSession->GetPeerPort(), pIoSession->GetSocketFD());
 
-	CTimerHandler *pTimerHandler = g_DataCenter.GetTimerHandler();
-	pTimerHandler->DelSessionHB(pIoSession);
-
 	CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
+	NetNode *pNetNode = pServerConfig->FindNetNode(pIoSession->GetPeerAddressStr(), pIoSession->GetPeerPort());
+	//用户连接是有心跳记录的
+	if(pNetNode == NULL)
+	{
+		CTimerHandler *pTimerHandler = g_DataCenter.GetTimerHandler();
+		pTimerHandler->DelSessionHB(pIoSession);
+	}
+
 	g_DataCenter.DecConnCount();
 
 	CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
@@ -221,68 +226,67 @@ int32_t CMessageHandler::OnClosed(IIOSession *pIoSession)
 			stRoomParam.nSubscriberID = enmInvalidUserID;
 		}
 
-		EntityType nEntityType = enmEntityType_None;
-		ServerID nServerID = enmInvalidServerID;
+		//EntityType nEntityType = enmEntityType_None;
+		//ServerID nServerID = enmInvalidServerID;
 
-		MsgHeadSS stMsgHeadSS;
-		stMsgHeadSS.m_nHeadSize = stMsgHeadSS.GetSize();
-		stMsgHeadSS.m_nMsgID = MSGID_SERVERUNREGIST_REQ;
-		stMsgHeadSS.m_nRoomID = enmInvalidRoomID;
-		stMsgHeadSS.m_nUserID = enmInvalidUserID;
-		stMsgHeadSS.m_nTransType = enmTransType_P2P;
-		stMsgHeadSS.m_nDstType = pServerConfig->GetServerType();
-		stMsgHeadSS.m_nDstID = pServerConfig->GetServerID();
+		//MsgHeadSS stMsgHeadSS;
+		//stMsgHeadSS.m_nHeadSize = stMsgHeadSS.GetSize();
+		//stMsgHeadSS.m_nMsgID = MSGID_SERVERUNREGIST_REQ;
+		//stMsgHeadSS.m_nRoomID = enmInvalidRoomID;
+		//stMsgHeadSS.m_nUserID = enmInvalidUserID;
+		//stMsgHeadSS.m_nTransType = enmTransType_P2P;
+		//stMsgHeadSS.m_nDstType = pServerConfig->GetServerType();
+		//stMsgHeadSS.m_nDstID = pServerConfig->GetServerID();
 
-		pSessionParam->GetServerInfo(nEntityType, nServerID);
-		if((nEntityType == enmEntityType_None) || (nServerID == enmInvalidServerID))
-		{
-			NetNode *pNetNode = pServerConfig->FindNetNode(pIoSession->GetPeerAddressStr(), pIoSession->GetPeerPort());
-			if(pNetNode == NULL)
-			{
-				return 0;
-			}
-			nEntityType = pNetNode->m_nPeerType;
-			nServerID = pNetNode->m_nPeerID;
-		}
+		//pSessionParam->GetServerInfo(nEntityType, nServerID);
+		//if((nEntityType == enmEntityType_None) || (nServerID == enmInvalidServerID))
+		//{
+		//	NetNode *pNetNode = pServerConfig->FindNetNode(pIoSession->GetPeerAddressStr(), pIoSession->GetPeerPort());
+		//	if(pNetNode == NULL)
+		//	{
+		//		return 0;
+		//	}
+		//	nEntityType = pNetNode->m_nPeerType;
+		//	nServerID = pNetNode->m_nPeerID;
+		//}
 
-		stMsgHeadSS.m_nSrcType = nEntityType;
-		stMsgHeadSS.m_nSrcID = nServerID;
+		//stMsgHeadSS.m_nSrcType = nEntityType;
+		//stMsgHeadSS.m_nSrcID = nServerID;
 
-		uint32_t nOffset = 0;
-		uint8_t arrBuf[enmMaxMessageSize];
+		//uint32_t nOffset = 0;
+		//uint8_t arrBuf[enmMaxMessageSize];
 
-		int32_t nRet = stMsgHeadSS.Encode(arrBuf, sizeof(arrBuf) - nOffset, nOffset);
-		if(nRet != 0)
-		{
-			return nRet;
-		}
+		//int32_t nRet = stMsgHeadSS.Encode(arrBuf, sizeof(arrBuf) - nOffset, nOffset);
+		//if(nRet != 0)
+		//{
+		//	return nRet;
+		//}
 
-		ServerUnregistReq stServerUnregistReq;
-		nRet = stServerUnregistReq.Encode(arrBuf, sizeof(arrBuf) - nOffset, nOffset);
-		if(nRet != 0)
-		{
-			return nRet;
-		}
+		//ServerUnregistReq stServerUnregistReq;
+		//nRet = stServerUnregistReq.Encode(arrBuf, sizeof(arrBuf) - nOffset, nOffset);
+		//if(nRet != 0)
+		//{
+		//	return nRet;
+		//}
 
-		uint16_t nTotalSize = nOffset;
-		nOffset = 1;
+		//uint16_t nTotalSize = nOffset;
+		//nOffset = 1;
 
-		nRet = CCodeEngine::Encode(arrBuf, sizeof(arrBuf), nOffset, nTotalSize);
-		if(nRet != 0)
-		{
-			return nRet;
-		}
+		//nRet = CCodeEngine::Encode(arrBuf, sizeof(arrBuf), nOffset, nTotalSize);
+		//if(nRet != 0)
+		//{
+		//	return nRet;
+		//}
 
-		nRet = g_Frame.FrameCallBack(stMsgHeadSS.m_nMsgID, pIoSession, arrBuf, nTotalSize);
-		if(nRet == -1)
-		{
-			WRITE_WARN_LOG(SERVER_NAME, "frame call back return fail!\n");
-		}
+		//nRet = g_Frame.FrameCallBack(stMsgHeadSS.m_nMsgID, pIoSession, arrBuf, nTotalSize);
+		//if(nRet == -1)
+		//{
+		//	WRITE_WARN_LOG(SERVER_NAME, "frame call back return fail!\n");
+		//}
 
 		CServerHelper::UnregistSessionInfo(pIoSession);
 	}
 
-	NetNode *pNetNode = pServerConfig->FindNetNode(pIoSession->GetPeerAddressStr(), pIoSession->GetPeerPort());
 	if(pNetNode != NULL)
 	{
 		m_pConnector->Connect(pIoSession->GetPeerAddressStr(), pIoSession->GetPeerPort());

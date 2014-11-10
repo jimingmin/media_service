@@ -68,8 +68,8 @@ public:
 	ServerID GetServerID();
 	//是否在本地服务器上
 	bool IsLocalServer();
-	//是否关联过远程服务器
-	bool AttachRemoteServer();
+	////是否关联过远程服务器
+	//bool AttachRemoteServer();
 	//设置channel key
 	void SetChannelKey(RoomID nRoomID, UserID nShowerID, UserID nSubscriberID);
 	//获取channel key
@@ -80,8 +80,8 @@ public:
 	ChannelType GetChannelType();
 	//获取接受者数量
 	int32_t GetReciverCount();
-	//表演者是否关联远程服务器
-	int32_t IsAttachRemoteServer();
+	////表演者是否关联远程服务器
+	//int32_t IsAttachRemoteServer();
 	//是否是表演者
 	bool IsShower();
 	//缓存最近的N个媒体包

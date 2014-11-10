@@ -174,6 +174,30 @@ int32_t CMediaChannel::StartShow()
 
 	g_DataCenter.AddChannel(this);
 
+	//加入所有本组内其它media
+	IIOSession *arrIoSession[enmMaxNetNodeCount];
+	int32_t nCount = CServerHelper::GetAllIoSession(enmEntityType_Media, arrIoSession, enmMaxNetNodeCount);
+	for(int32_t i = 0; i < nCount; ++i)
+	{
+		CSessionParam *pSessionParam = (CSessionParam *)arrIoSession[i]->GetParamPtr();
+		if(pSessionParam == NULL)
+		{
+			continue;
+		}
+
+		EntityType nEntityType = enmEntityType_None;
+		ServerID nServerID = enmInvalidServerID;
+		pSessionParam->GetServerInfo(nEntityType, nServerID);
+
+		CMediaChannel *pSubscriber = NEW(CMediaChannel);
+		pSubscriber->SetServerID(nServerID);
+		pSubscriber->SetIoSession(arrIoSession[i]);
+		pSubscriber->SetChannelKey(m_nRoomID, m_nShowerID, nServerID);
+		pSubscriber->SetChannelType(enmChannelType_Server);
+
+		Join(pSubscriber);
+	}
+
 	return 0;
 }
 
@@ -294,15 +318,6 @@ int32_t CMediaChannel::GetReciverCount()
 		return m_pReceiver->UserCount();
 	}
 
-	return 0;
-}
-
-int32_t CMediaChannel::IsAttachRemoteServer()
-{
-	if(m_pReceiver != NULL)
-	{
-		return m_pReceiver->ServerCount();
-	}
 	return 0;
 }
 

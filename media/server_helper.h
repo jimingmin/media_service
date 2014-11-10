@@ -64,6 +64,8 @@ public:
 
 	static IIOSession *GetIoSession(EntityType nEntityType, int32_t nID);
 
+	static int32_t GetAllIoSession(EntityType nEntityType, IIOSession *arrIoSession[], int32_t nSize);
+
 	static int32_t MakeTransMediaHeadBuf(RoomID nRoomID, UserID nUserID, uint8_t *pHeadBuf, int32_t nBodySize);
 
 protected:
