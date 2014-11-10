@@ -19,6 +19,7 @@ int32_t CFlashHandler::OnOpened(IIOSession *pIoSession)
 			pIoSession->GetPeerAddressStr(), pIoSession->GetPeerPort());
 
 	//pIoSession->Write((uint8_t *)FLASH_SEC_RESP, (int32_t)sizeof(FLASH_SEC_RESP));
+	m_pTimerHandler->AddSession(pIoSession);
 
 	return 0;
 }
@@ -31,6 +32,7 @@ int32_t CFlashHandler::OnRecved(IIOSession *pIoSession, uint8_t *pBuf, uint32_t 
 	{
 		pIoSession->Write((uint8_t *)FLASH_SEC_RESP, (int32_t)sizeof(FLASH_SEC_RESP));
 	}
+
 	return 0;
 }
 
@@ -47,6 +49,7 @@ int32_t CFlashHandler::OnClosed(IIOSession *pIoSession)
 	WRITE_DEBUG_LOG(SERVER_NAME, "session closed!{peeraddress=%s, peerport=%d}\n",
 			pIoSession->GetPeerAddressStr(), pIoSession->GetPeerPort());
 
+	m_pTimerHandler->DelSession(pIoSession);
 	return 0;
 }
 
@@ -66,6 +69,8 @@ int32_t CFlashHandler::OnTimeout(IIOSession *pIoSession)
 	return 0;
 }
 
-
-
+void CFlashHandler::SetTimerHandler(CTimerHandler *pTimerHandler)
+{
+	m_pTimerHandler = pTimerHandler;
+}
 

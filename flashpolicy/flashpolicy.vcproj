@@ -210,6 +210,14 @@
 			RelativePath=".\server_typedef.h"
 			>
 		</File>
+		<File
+			RelativePath=".\timer_handler.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\timer_handler.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -10,6 +10,7 @@
 
 #include "../netevent/net_impl.h"
 #include "../netevent/net_ioadapter.h"
+#include "timer_handler.h"
 
 using namespace NETEVENT;
 
@@ -27,6 +28,11 @@ public:
 	virtual int32_t OnError(IIOSession *pIoSession);
 
 	virtual int32_t OnTimeout(IIOSession *pIoSession);
+
+	void SetTimerHandler(CTimerHandler *pTimerHandler);
+
+protected:
+	CTimerHandler		*m_pTimerHandler;
 };
 
 #endif /* FLASH_HANDLER_H_ */

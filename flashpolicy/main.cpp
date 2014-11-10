@@ -5,7 +5,6 @@
  *      Author: jimm
  */
 
-#include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "../netevent/net_namespace.h"
@@ -28,7 +27,7 @@ using namespace LOGGER;
 using namespace NETEVENT;
 using namespace FRAME;
 
-int32_t InitNet(CNetHandler *pNetHandler)
+int32_t InitNetAndTimer(CNetHandler *pNetHandler)
 {
 	CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
 	if(pServerConfig == NULL)
@@ -48,28 +47,13 @@ int32_t InitNet(CNetHandler *pNetHandler)
 		pFlashServer->Bind(arrListenPort[i]);
 	}
 
-	return 0;
-}
+	CTimerHandler *pTimerHandler = new CTimerHandler();
+	int32_t nTimerIndex = 0;
+	g_Frame.CreateTimer(static_cast<TimerProc>(&CTimerHandler::HeartBeat),
+		pTimerHandler, NULL, 10 * MS_PER_SECOND, true, nTimerIndex);
+	
+	pFlashHandler->SetTimerHandler(pTimerHandler);
 
-int32_t InitSig()
-{
-#ifdef unix
-	signal(SIGINT,  SIG_IGN);
-	signal(SIGHUP,  SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
-	signal(SIGPIPE, SIG_IGN);
-	signal(SIGTTOU, SIG_IGN);
-	signal(SIGTTIN, SIG_IGN);
-	signal(SIGCHLD, SIG_IGN);
-	signal(SIGTERM, SIG_IGN);
-	signal(SIGHUP,  SIG_IGN);
-
-	struct sigaction sig;
-	sig.sa_handler = SIG_IGN;
-	sigemptyset(&sig.sa_mask);
-	sig.sa_flags = 0;
-	sigaction(SIGPIPE, &sig, NULL);
-#endif
 	return 0;
 }
 
@@ -86,9 +70,7 @@ int32_t main()
 
 	g_Frame.Init(SERVER_NAME);
 
-	InitNet(pNetHandler);
-
-	InitSig();
+	InitNetAndTimer(pNetHandler);
 
 	while(true)
 	{
