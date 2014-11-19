@@ -8,10 +8,12 @@
 #include "timer_handler.h"
 #include "../common/common_datetime.h"
 #include "../netevent/net_impl.h"
+#include "../logger/logger.h"
 #include "media_channel.h"
 #include "session_param.h"
 
 using namespace NETEVENT;
+using namespace LOGGER;
 
 void CTimerHandler::RecordShowerHB(CMediaChannel *pMediaChannel)
 {
@@ -43,6 +45,8 @@ void CTimerHandler::MoveToIdle(IIOSession *pIoSession)
 
 int32_t CTimerHandler::HeartBeat(CTimer *pTimer)
 {
+	WRITE_INFO_LOG(SERVER_NAME, "HeartBeat Timer!\n");
+
 	int64_t nCurTime = CTimeValue::CurrentTime().Seconds();
 
 	int32_t nCount = m_stShowerHB.size();

@@ -119,7 +119,7 @@ void CMediaReceiver::AllLeave(CMediaChannel *pMediaChannel)
 		ReceiverList stUserList = m_stUserList;
 		for(ReceiverList::iterator it = stUserList.begin(); it != stUserList.end(); ++it)
 		{
-			(*it)->GetIoSession()->AsyncClose();
+			(*it)->GetIoSession()->Close();
 		}
 	}
 
@@ -130,6 +130,7 @@ void CMediaReceiver::AllLeave(CMediaChannel *pMediaChannel)
 		{
 			//(*it)->Leave(pMediaChannel);
 			pMediaChannel->Leave(*it);
+			DELETE((*it));
 		}
 	}
 }

@@ -85,14 +85,14 @@ CMediaChannel *CDataCenter::FindChannel(string strKey)
 
 int32_t CDataCenter::GetAllLocalShower(RoomID arrRoomID[], UserID arrShowerID[], int32_t nSize)
 {
-	CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
-	ServerID nServerID = pServerConfig->GetServerID();
+	//CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
+	//ServerID nServerID = pServerConfig->GetServerID();
 
 	int32_t nShowerCount = 0;
 	for(SessionChannelMap::iterator it = m_stSessionChannelMap.begin(); it != m_stSessionChannelMap.end(); ++it)
 	{
 		CMediaChannel *pMediaChannel = it->second;
-		if(nServerID == pMediaChannel->GetServerID())
+		if(pMediaChannel->GetChannelType() == enmChannelType_User)
 		{
 			arrRoomID[nShowerCount] = pMediaChannel->GetRoomID();
 			arrShowerID[nShowerCount] = pMediaChannel->GetShowerID();

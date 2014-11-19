@@ -192,6 +192,9 @@ int32_t CMediaChannel::StartShow()
 			pSubscriber->SetChannelKey(m_nRoomID, m_nShowerID, nServerID);
 			pSubscriber->SetChannelType(enmChannelType_Server);
 
+			RoomParam stRoomParam(m_nRoomID, m_nShowerID, nServerID);
+			pSessionParam->AddRoomParam(stRoomParam);
+
 			Join(pSubscriber);
 		}
 	}

@@ -68,7 +68,7 @@ int32_t CCommandHandler::ServerRegistEvent(CBaseObject *pObject, IMsgHead *pMsgH
 		pSubscriber->SetIoSession(pIoSession);
 		pSubscriber->SetChannelKey(nRoomID, nShowerID, pMsgHeadSS->m_nSrcID);
 		pSubscriber->SetChannelType(enmChannelType_Server);
-		CMediaChannel *pShower = g_DataCenter.FindChannel(nRoomID, nShowerID, pMsgHeadSS->m_nSrcID);
+		CMediaChannel *pShower = g_DataCenter.FindChannel(nRoomID, nShowerID, nShowerID);
 		if(pShower == NULL)
 		{
 			WRITE_WARN_LOG(SERVER_NAME, "it's not found shower when server regist!{RoomID=%d, ShowerID=%d}\n",
@@ -297,7 +297,7 @@ int32_t CCommandHandler::StartPublishEvent(CBaseObject *pObject, IMsgHead *pMsgH
 	CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
 	pShower->SetServerID(pServerConfig->GetServerID());
 	pShower->SetIoSession(pIoSession);
-	pShower->SetChannelKey(pMsgHeadCS->m_nRoomID, pMsgHeadCS->m_nUserID, pStartPublishReq->m_nUserID);
+	pShower->SetChannelKey(pMsgHeadCS->m_nRoomID, pStartPublishReq->m_nUserID, pStartPublishReq->m_nUserID);
 	pShower->SetChannelType(enmChannelType_User);
 	pShower->StartShow();
 
