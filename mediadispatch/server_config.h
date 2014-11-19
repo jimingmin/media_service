@@ -104,7 +104,7 @@ public:
 		return &m_arrNetNode[arrNetNodeIndex[nIndex]];
 	}
 
-	string GetServerListByGroup(int32_t nGroupID)
+	string GetDomainByGroup(int32_t nGroupID)
 	{
 		GroupList::iterator it = m_stGroupList.begin();
 		if(it != m_stGroupList.end())

@@ -5,7 +5,14 @@
 		<node peer_address="10.0.102.30" peer_port="9001" peer_type="8" peer_id="1"/>
 	</peers>
 	<groups>
-	    <group id="1" server_list="42.62.31.11-42.62.31.12-42.62.31.15"/>
-	    <group id="2" server_list="58.240.173.107-58.240.199.41-180.97.80.107-180.97.82.237"/>
+	    <group id="1" domain="m1.69xiu.com"/>
+	    <group id="2" domain="m2.69xiu.com"/>
+	    <group id="3" domain="m3.69xiu.com"/>
+	    <group id="4" domain="m4.69xiu.com"/>
+	    <group id="5" domain="m5.69xiu.com"/>
+	    <group id="6" domain="m6.69xiu.com"/>
+	    <group id="7" domain="m7.69xiu.com"/>
+	    <group id="8" domain="m8.69xiu.com"/>
+	    <group id="9" domain="m9.69xiu.com"/>
 	</groups>
 </server>

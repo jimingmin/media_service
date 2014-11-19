@@ -106,32 +106,33 @@ int32_t CServerConfig::Init()
 		pNode = pNode->NextSiblingElement();
 	}
 
-//	TiXmlElement *pGroups = pRoot->FirstChildElement("groups");
-//	if (NULL == pGroups)
-//	{
-//		return 0;
-//	}
-//
-//	TiXmlElement *pGroup = pPeers->FirstChildElement("group");
-//	while(pGroup != NULL)
-//	{
-//		int32_t nGroupID = 0;
-//		pszValue = pGroup->Attribute("id", &nGroupID);
-//		if(NULL == pszValue)
-//		{
-//			WRITE_WARN_LOG(SERVER_NAME, "%s is not found id node!\n", m_szConfigFile);
-//			return 1;
-//		}
-//
-//		pszValue = pGroup->Attribute("server_list");
-//		if(NULL == pszValue)
-//		{
-//			WRITE_WARN_LOG(SERVER_NAME, "%s is not found server_list node!\n", m_szConfigFile);
-//			return 1;
-//		}
-//
-//		m_stGroupList[nGroupID] = pszValue;
-//	}
+	TiXmlElement *pGroups = pRoot->FirstChildElement("groups");
+	if (NULL == pGroups)
+	{
+		return 0;
+	}
+
+	TiXmlElement *pGroup = pGroups->FirstChildElement("group");
+	while(pGroup != NULL)
+	{
+		int32_t nGroupID = 0;
+		pszValue = pGroup->Attribute("id", &nGroupID);
+		if(NULL == pszValue)
+		{
+			WRITE_WARN_LOG(SERVER_NAME, "%s is not found id node!\n", m_szConfigFile);
+			return 1;
+		}
+
+		pszValue = pGroup->Attribute("domain");
+		if(NULL == pszValue)
+		{
+			WRITE_WARN_LOG(SERVER_NAME, "%s is not found domain node!\n", m_szConfigFile);
+			return 1;
+		}
+
+		m_stGroupList[nGroupID] = pszValue;
+		pGroup = pGroup->NextSiblingElement();
+	}
 
 	return 0;
 }

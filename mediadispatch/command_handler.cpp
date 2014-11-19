@@ -155,12 +155,12 @@ int32_t CCommandHandler::ShowerLoginEvent(CBaseObject *pObject, IMsgHead *pMsgHe
 
 	CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
 
-	char arrString[32];
+	char arrString[256];
 	UpdateCacheNoti stUpdateCacheNoti;
 	int32_t len = sprintf(arrString, "media-%d", pMsgHeadSS->m_nRoomID);
 	arrString[len] = '\0';
 	stUpdateCacheNoti.m_strKey = string(arrString);
-	stUpdateCacheNoti.m_strValue = pServerConfig->GetServerListByGroup(pSessionParam->GetGroupID());
+	stUpdateCacheNoti.m_strValue = pServerConfig->GetDomainByGroup(pSessionParam->GetGroupID());
 	SendSSNoti(MSGID_UPDATECACHE_NOTI, &stUpdateCacheNoti, pMsgHeadSS->m_nRoomID, pMsgHeadSS->m_nUserID, enmTransType_P2P, enmEntityType_CacheProxy, 1);
 
 	return 0;
@@ -208,7 +208,7 @@ int32_t CCommandHandler::ShowerLogoutEvent(CBaseObject *pObject, IMsgHead *pMsgH
 
 	pGroupInfo->DelShower(pShowerLogoutNoti->m_nUserID);
 
-	char arrString[32];
+	char arrString[256];
 	UpdateCacheNoti stUpdateCacheNoti;
 	int32_t len = sprintf(arrString, "media-%d", pMsgHeadSS->m_nRoomID);
 	arrString[len] = '\0';
