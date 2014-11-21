@@ -45,11 +45,15 @@ int32_t CCommandHandler::UpdateCacheEvent(CBaseObject *pObject, IMsgHead *pMsgHe
 	CMemcacheClient *pMemcacheClient = g_DataCenter.GetMemcacheClient();
 	if(pUpdateCacheNoti->m_strValue == "0")
 	{
+		WRITE_INFO_LOG(SERVER_NAME, "del memcache{%s}!\n", pUpdateCacheNoti->m_strKey.c_str());
 		pMemcacheClient->Del(pUpdateCacheNoti->m_strKey.c_str());
 	}
 	else
 	{
-		pMemcacheClient->Set(pUpdateCacheNoti->m_strKey.c_str(), pUpdateCacheNoti->m_strValue.c_str(), 0);
+		char szCacheValue[2048] = { 0 };
+		sprintf(szCacheValue, "{\"%s\":\"%s\"}", pUpdateCacheNoti->m_strKey.c_str(), pUpdateCacheNoti->m_strValue.c_str());
+		WRITE_INFO_LOG(SERVER_NAME, "set memcache{%s}!\n", szCacheValue);
+		pMemcacheClient->Set(pUpdateCacheNoti->m_strKey.c_str(), szCacheValue, 0);
 	}
 
 	return 0;
