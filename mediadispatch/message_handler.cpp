@@ -98,6 +98,11 @@ int32_t CMessageHandler::OnClosed(IIOSession *pIoSession)
 			pIoSession->GetPeerAddressStr(), pIoSession->GetPeerPort(), pIoSession->GetSocketFD());
 
 	CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
+	NetNode *pNetNode = pServerConfig->FindNetNode(pIoSession->GetPeerAddressStr(), pIoSession->GetPeerPort());
+	if(pNetNode != NULL)
+	{
+		m_pConnector->Connect(pIoSession->GetPeerAddressStr(), pIoSession->GetPeerPort());
+	}
 
 	return 0;
 }
