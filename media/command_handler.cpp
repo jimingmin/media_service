@@ -193,6 +193,10 @@ int32_t CCommandHandler::UserRegistEvent(CBaseObject *pObject, IMsgHead *pMsgHea
 
 	RegistSessionInfo(enmEntityType_Client, pIoSession->GetSessionID(), pIoSession);
 
+	//将此条连接与userid绑定
+	CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
+	pSessionParam->SetUserID(nUserID);
+
 	return 0;
 }
 
@@ -222,25 +226,39 @@ int32_t CCommandHandler::UserUnregistEvent(CBaseObject *pObject, IMsgHead *pMsgH
 		return 0;
 	}
 
+	CMediaChannel *pMediaChannel = g_DataCenter.FindChannel(pMsgHeadCS->m_nRoomID, pUserUnregistReq->m_nShowerID, pMsgHeadCS->m_nUserID);
+	if(pMediaChannel == NULL)
+	{
+		WRITE_WARN_LOG(SERVER_NAME, "it's not found channel!{RoomID=%d, ShowerID=%d, UserID=%d}\n",
+			pMsgHeadCS->m_nRoomID, pUserUnregistReq->m_nShowerID, pMsgHeadCS->m_nUserID);
+		return 0;
+	}
+
 	//是否表演
 	if(pMsgHeadCS->m_nUserID == pUserUnregistReq->m_nShowerID)
 	{
-		StopPublishReq stStopPublishReq;
-		stStopPublishReq.m_nUserID = pMsgHeadCS->m_nUserID;
+		if(pMediaChannel->GetChannelType() == enmChannelType_User)
+		{
+			StopPublishReq stStopPublishReq;
+			stStopPublishReq.m_nShowerID = pUserUnregistReq->m_nShowerID;
 
-		StopPublishEvent(pIoSession, pMsgHead, &stStopPublishReq);
+			StopPublishEvent(pIoSession, pMsgHead, &stStopPublishReq);
+		}
+		else
+		{
+			ShowerLogoutNoti stShowerLogoutNoti;
+			stShowerLogoutNoti.m_nShowerID = pUserUnregistReq->m_nShowerID;
+
+			ShowerLogoutEvent(pIoSession, pMsgHead, &stShowerLogoutNoti);
+		}
 	}
 	//是否观看
 	else
 	{
-		CMediaChannel *pMediaChannel = g_DataCenter.FindChannel(pMsgHeadCS->m_nRoomID, pUserUnregistReq->m_nShowerID, pMsgHeadCS->m_nUserID);
-		if(pMediaChannel != NULL)
-		{
-			UserUnsubscribeReq stUnsubscribeReq;
-			stUnsubscribeReq.m_nUserID = pMediaChannel->GetShowerID();
+		UserUnsubscribeReq stUnsubscribeReq;
+		stUnsubscribeReq.m_nUserID = pMediaChannel->GetShowerID();
 
-			UserUnsubscribeEvent(pIoSession, pMsgHead, &stUnsubscribeReq);
-		}
+		UserUnsubscribeEvent(pIoSession, pMsgHead, &stUnsubscribeReq);
 	}
 
 //	UnregistSessionInfo(pIoSession);
@@ -278,10 +296,19 @@ int32_t CCommandHandler::StartPublishEvent(CBaseObject *pObject, IMsgHead *pMsgH
 		return 0;
 	}
 
-	CMediaChannel *pShower = g_DataCenter.FindChannel(pMsgHeadCS->m_nRoomID, pStartPublishReq->m_nUserID, pStartPublishReq->m_nUserID);
+	CMediaChannel *pShower = g_DataCenter.FindChannel(pMsgHeadCS->m_nRoomID, pStartPublishReq->m_nShowerID, pStartPublishReq->m_nShowerID);
 	if(pShower != NULL)
 	{
-		WRITE_WARN_LOG(SERVER_NAME, "it's found shower exist!{ShowerID=%d}\n", pStartPublishReq->m_nUserID);
+		WRITE_WARN_LOG(SERVER_NAME, "it's found shower exist!{ShowerID=%d}\n", pStartPublishReq->m_nShowerID);
+		SendCSResp(MSGID_STARTPUBLISH_RESP, pMsgHead, &stResp, pIoSession);
+		return 0;
+	}
+
+	CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
+	UserID nUserID = pSessionParam->GetUserID();
+	if(pStartPublishReq->m_nShowerID != nUserID)
+	{
+		WRITE_WARN_LOG(SERVER_NAME, "userid is invalid!{UserID=%d, ShowerID=%d}\n", nUserID, pStartPublishReq->m_nShowerID);
 		SendCSResp(MSGID_STARTPUBLISH_RESP, pMsgHead, &stResp, pIoSession);
 		return 0;
 	}
@@ -297,19 +324,18 @@ int32_t CCommandHandler::StartPublishEvent(CBaseObject *pObject, IMsgHead *pMsgH
 	CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
 	pShower->SetServerID(pServerConfig->GetServerID());
 	pShower->SetIoSession(pIoSession);
-	pShower->SetChannelKey(pMsgHeadCS->m_nRoomID, pStartPublishReq->m_nUserID, pStartPublishReq->m_nUserID);
+	pShower->SetChannelKey(pMsgHeadCS->m_nRoomID, pStartPublishReq->m_nShowerID, pStartPublishReq->m_nShowerID);
 	pShower->SetChannelType(enmChannelType_User);
 	pShower->StartShow();
 
-	CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
-	RoomParam stRoomParam(pMsgHeadCS->m_nRoomID, pStartPublishReq->m_nUserID, pStartPublishReq->m_nUserID);
+	RoomParam stRoomParam(pMsgHeadCS->m_nRoomID, pStartPublishReq->m_nShowerID, pStartPublishReq->m_nShowerID);
 	pSessionParam->AddRoomParam(stRoomParam);
 
 	stResp.m_nResult = 0;
 	SendCSResp(MSGID_STARTPUBLISH_RESP, pMsgHead, &stResp, pIoSession);
 
 	ShowerLoginNoti stShowerLoginNoti;
-	stShowerLoginNoti.m_nUserID = pStartPublishReq->m_nUserID;
+	stShowerLoginNoti.m_nShowerID = pStartPublishReq->m_nShowerID;
 
 	SendSSNoti(MSGID_SHOWERLOGIN_NOTI, &stShowerLoginNoti, pMsgHeadCS->m_nRoomID, pMsgHeadCS->m_nUserID, enmTransType_Server, enmEntityType_Media);
 	SendSSNoti(MSGID_SHOWERLOGIN_NOTI, &stShowerLoginNoti, pMsgHeadCS->m_nRoomID, pMsgHeadCS->m_nUserID, enmTransType_Server, enmEntityType_MediaDispatch);
@@ -345,7 +371,7 @@ int32_t CCommandHandler::StopPublishEvent(CBaseObject *pObject, IMsgHead *pMsgHe
 		return 0;
 	}
 
-	CMediaChannel *pShower = g_DataCenter.FindChannel(pMsgHeadCS->m_nRoomID, pStopPublishReq->m_nUserID, pStopPublishReq->m_nUserID);
+	CMediaChannel *pShower = g_DataCenter.FindChannel(pMsgHeadCS->m_nRoomID, pStopPublishReq->m_nShowerID, pStopPublishReq->m_nShowerID);
 	if(pShower == NULL)
 	{
 		WRITE_WARN_LOG(SERVER_NAME, "it's not found shower!{UserID=%d}\n", pMsgHeadCS->m_nUserID);
@@ -356,7 +382,7 @@ int32_t CCommandHandler::StopPublishEvent(CBaseObject *pObject, IMsgHead *pMsgHe
 	DELETE(pShower);
 
 	ShowerLogoutNoti stShowerLogoutNoti;
-	stShowerLogoutNoti.m_nUserID = pStopPublishReq->m_nUserID;
+	stShowerLogoutNoti.m_nShowerID = pStopPublishReq->m_nShowerID;
 
 	SendSSNoti(MSGID_SHOWERLOGOUT_NOTI, &stShowerLogoutNoti, pMsgHeadCS->m_nRoomID, pMsgHeadCS->m_nUserID, enmTransType_Server, enmEntityType_Media);
 	SendSSNoti(MSGID_SHOWERLOGOUT_NOTI, &stShowerLogoutNoti, pMsgHeadCS->m_nRoomID, pMsgHeadCS->m_nUserID, enmTransType_Server, enmEntityType_MediaDispatch);
@@ -398,12 +424,12 @@ int32_t CCommandHandler::ShowerLoginEvent(CBaseObject *pObject, IMsgHead *pMsgHe
 
 	pShower->SetServerID(pMsgHeadSS->m_nSrcID);
 	pShower->SetIoSession(pIoSession);
-	pShower->SetChannelKey(pMsgHeadSS->m_nRoomID, pShowerLoginNoti->m_nUserID, pShowerLoginNoti->m_nUserID);
+	pShower->SetChannelKey(pMsgHeadSS->m_nRoomID, pShowerLoginNoti->m_nShowerID, pShowerLoginNoti->m_nShowerID);
 	pShower->SetChannelType(enmChannelType_Server);
 	pShower->StartShow();
 
 	CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
-	RoomParam stRoomParam(pMsgHeadSS->m_nRoomID, pShowerLoginNoti->m_nUserID, pShowerLoginNoti->m_nUserID);
+	RoomParam stRoomParam(pMsgHeadSS->m_nRoomID, pShowerLoginNoti->m_nShowerID, pShowerLoginNoti->m_nShowerID);
 	pSessionParam->AddRoomParam(stRoomParam);
 
 	return 0;
@@ -435,18 +461,18 @@ int32_t CCommandHandler::ShowerLogoutEvent(CBaseObject *pObject, IMsgHead *pMsgH
 		return 0;
 	}
 
-//	if(g_DataCenter.IsPublisher(pShowerLogoutNoti->m_nUserID))
+//	if(g_DataCenter.IsPublisher(pShowerLogoutNoti->m_nShowerID))
 //	{
-//		g_DataCenter.DelPublisher(pShowerLogoutNoti->m_nUserID);
+//		g_DataCenter.DelPublisher(pShowerLogoutNoti->m_nShowerID);
 //	}
 
-	CMediaChannel *pShower = g_DataCenter.FindChannel(pMsgHeadSS->m_nRoomID, pShowerLogoutNoti->m_nUserID, pShowerLogoutNoti->m_nUserID);
+	CMediaChannel *pShower = g_DataCenter.FindChannel(pMsgHeadSS->m_nRoomID, pShowerLogoutNoti->m_nShowerID, pShowerLogoutNoti->m_nShowerID);
 	if(pShower != NULL)
 	{
 		pShower->StopShow();
 		DELETE(pShower);
 		CSessionParam *pSessionParam = (CSessionParam *)pIoSession->GetParamPtr();
-		pSessionParam->DelRoomParam(pMsgHeadSS->m_nRoomID, pShowerLogoutNoti->m_nUserID, pShowerLogoutNoti->m_nUserID);
+		pSessionParam->DelRoomParam(pMsgHeadSS->m_nRoomID, pShowerLogoutNoti->m_nShowerID, pShowerLogoutNoti->m_nShowerID);
 //		g_DataCenter.DelChannel(pShower);
 //		DELETE(pShower);
 	}
@@ -619,7 +645,7 @@ int32_t CCommandHandler::UserUnsubscribeEvent(CBaseObject *pObject, IMsgHead *pM
 //	CMediaChannel *pShower = g_DataCenter.FindChannel(pMsgHeadSS->m_nRoomID, pServerSubscribeReq->m_nShowerID, pServerSubscribeReq->m_nShowerID);
 //	if(pShower == NULL)
 //	{
-//		WRITE_ERROR_LOG(SERVER_NAME, "she's not a shower!{SubscriberID=%d, ShowerID=%d}\n", pMsgHeadSS->m_nUserID, pServerSubscribeReq->m_nShowerID);
+//		WRITE_ERROR_LOG(SERVER_NAME, "she's not a shower!{SubscriberID=%d, ShowerID=%d}\n", pMsgHeadSS->m_nShowerID, pServerSubscribeReq->m_nShowerID);
 //		return 0;
 //	}
 //
@@ -638,7 +664,7 @@ int32_t CCommandHandler::UserUnsubscribeEvent(CBaseObject *pObject, IMsgHead *pM
 //		pSubscriber = NEW(CMediaChannel);
 //		if(pSubscriber == NULL)
 //		{
-//			WRITE_WARN_LOG(SERVER_NAME, "we cann't alloc memory to shower!{SubscriberID=%d, ShowerID=%d}\n", pMsgHeadSS->m_nUserID, pServerSubscribeReq->m_nShowerID);
+//			WRITE_WARN_LOG(SERVER_NAME, "we cann't alloc memory to shower!{SubscriberID=%d, ShowerID=%d}\n", pMsgHeadSS->m_nShowerID, pServerSubscribeReq->m_nShowerID);
 //			return 0;
 //		}
 //
