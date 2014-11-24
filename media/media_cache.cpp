@@ -10,6 +10,14 @@
 
 void CMediaCache::CacheMediaPacket(MediaType nMediaType, uint8_t *pBuf, int32_t nBufSize)
 {
+	if((nMediaType == enmMediaDataType_FlvHead) ||
+		(nMediaType == enmMediaDataType_MetaData) ||
+		(nMediaType == enmMediaDataType_AudioConfig) ||
+		(nMediaType == enmMediaDataType_VideoConfig))
+	{
+		return;
+	}
+
 	if(nMediaType == enmMediaDataType_Audio)
 	{
 		//return;
