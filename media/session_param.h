@@ -27,6 +27,10 @@ public:
 
 	virtual int32_t GetSize();
 
+	void SetUserID(UserID nUserID);
+
+	UserID GetUserID();
+
 	void SetServerInfo(EntityType nEntityType, ServerID nServerID);
 
 	void GetServerInfo(EntityType &nEntityType, ServerID &nServerID);
@@ -44,6 +48,7 @@ public:
 private:
 	EntityType			m_nEntityType;
 	int32_t				m_nServerID;
+	UserID				m_nUserID;
 	list<RoomParam>		m_stRoomParamList;
 };
 

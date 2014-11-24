@@ -11,6 +11,7 @@ int32_t CSessionParam::Init()
 {
 	m_nEntityType = enmEntityType_None;
 	m_nServerID = enmInvalidServerID;
+	m_nUserID = enmInvalidUserID;
 	return 0;
 }
 
@@ -22,6 +23,16 @@ int32_t CSessionParam::Uninit()
 int32_t CSessionParam::GetSize()
 {
 	return sizeof(*this);
+}
+
+void CSessionParam::SetUserID(UserID nUserID)
+{
+	m_nUserID = nUserID;
+}
+
+UserID CSessionParam::GetUserID()
+{
+	return m_nUserID;
 }
 
 void CSessionParam::SetServerInfo(EntityType nEntityType, ServerID nServerID)
