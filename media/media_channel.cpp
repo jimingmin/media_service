@@ -364,6 +364,7 @@ void CMediaChannel::CacheMediaData(MediaType nMediaType, uint8_t *pBuf, int32_t 
 		(nMediaType == enmMediaDataType_VideoConfig))
 	{
 		SaveMediaConfig(pBuf, nBufSize);
+		return;
 	}
 
 	if(m_pMediaCache == NULL)
