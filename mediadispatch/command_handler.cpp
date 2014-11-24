@@ -151,7 +151,7 @@ int32_t CCommandHandler::ShowerLoginEvent(CBaseObject *pObject, IMsgHead *pMsgHe
 		return 0;
 	}
 
-	pGroupInfo->AddShower(pShowerLoginNoti->m_nUserID, pIoSession->GetPeerAddressStr());
+	pGroupInfo->AddShower(pShowerLoginNoti->m_nShowerID, pIoSession->GetPeerAddressStr());
 
 	CServerConfig *pServerConfig = (CServerConfig *)g_Frame.GetConfig(CONFIG_SERVER);
 
@@ -206,7 +206,7 @@ int32_t CCommandHandler::ShowerLogoutEvent(CBaseObject *pObject, IMsgHead *pMsgH
 		return 0;
 	}
 
-	pGroupInfo->DelShower(pShowerLogoutNoti->m_nUserID);
+	pGroupInfo->DelShower(pShowerLogoutNoti->m_nShowerID);
 
 	char arrString[256];
 	UpdateCacheNoti stUpdateCacheNoti;
