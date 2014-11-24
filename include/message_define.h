@@ -115,7 +115,7 @@ public:
 	int32_t Encode(uint8_t *pBuf, const int32_t nBufSize, uint32_t &nOffset)
 	{
 		int32_t nRet = S_OK;
-		nRet = CCodeEngine::Encode(pBuf, nBufSize, nOffset, m_nUserID);
+		nRet = CCodeEngine::Encode(pBuf, nBufSize, nOffset, m_nShowerID);
 		if(nRet < 0)
 		{
 			return nRet;
@@ -127,7 +127,7 @@ public:
 	int32_t Decode(const uint8_t *pBuf, const int32_t nBufSize, uint32_t &nOffset)
 	{
 		int32_t nRet = S_OK;
-		nRet = CCodeEngine::Decode(pBuf, nBufSize, nOffset, m_nUserID);
+		nRet = CCodeEngine::Decode(pBuf, nBufSize, nOffset, m_nShowerID);
 		if(nRet < 0)
 		{
 			return nRet;
@@ -138,12 +138,12 @@ public:
 
 	void Dump(char* buf, const uint32_t size, uint32_t& offset)
 	{
-		int32_t len = sprintf(buf + offset, "ShowerLoginNoti msgbody:{m_nUserID=%d}}", m_nUserID);
+		int32_t len = sprintf(buf + offset, "ShowerLoginNoti msgbody:{m_nShowerID=%d}}", m_nShowerID);
 		offset += len;
 	}
 
 public:
-	UserID			m_nUserID;
+	UserID			m_nShowerID;
 };
 
 #define MSGID_SHOWERLOGOUT_NOTI			0x01061202
@@ -153,7 +153,7 @@ public:
 	int32_t Encode(uint8_t *pBuf, const int32_t nBufSize, uint32_t &nOffset)
 	{
 		int32_t nRet = S_OK;
-		nRet = CCodeEngine::Encode(pBuf, nBufSize, nOffset, m_nUserID);
+		nRet = CCodeEngine::Encode(pBuf, nBufSize, nOffset, m_nShowerID);
 		if(nRet < 0)
 		{
 			return nRet;
@@ -165,7 +165,7 @@ public:
 	int32_t Decode(const uint8_t *pBuf, const int32_t nBufSize, uint32_t &nOffset)
 	{
 		int32_t nRet = S_OK;
-		nRet = CCodeEngine::Decode(pBuf, nBufSize, nOffset, m_nUserID);
+		nRet = CCodeEngine::Decode(pBuf, nBufSize, nOffset, m_nShowerID);
 		if(nRet < 0)
 		{
 			return nRet;
@@ -176,12 +176,12 @@ public:
 
 	void Dump(char* buf, const uint32_t size, uint32_t& offset)
 	{
-		int32_t len = sprintf(buf + offset, "ShowerLogoutNoti msgbody:{m_nUserID=%d}}", m_nUserID);
+		int32_t len = sprintf(buf + offset, "ShowerLogoutNoti msgbody:{m_nShowerID=%d}}", m_nShowerID);
 		offset += len;
 	}
 
 public:
-	UserID			m_nUserID;
+	UserID			m_nShowerID;
 };
 
 #define MSGID_SHOWERLIST_NOTI				0x01061203
